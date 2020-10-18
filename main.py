@@ -65,6 +65,8 @@ def plot_figure():
     df_y2015 = df.groupby('year').get_group(2015)\
         .groupby('month')['checks_combined'].sum().reset_index()
 
+    plt.figure(figsize=(9, 6))
+
     # Plot lines for years 2015 - 2018
     plt.plot(-1 + df_y2018['month'], df_y2018['checks_combined'],
              ":.", color='magenta', label="2018")
@@ -75,11 +77,15 @@ def plot_figure():
     plt.plot(-1 + df_y2015['month'], df_y2015['checks_combined'],
              "-*", markersize=4, color='beige', label="2015")
 
-    plt.ylim(ymin=0)  # Sets y axis start to 0.
+    plt.ylim(ymin=0)  # Set y axis to start from 0
     plt.xticks(df_y2018.index, months)
     plt.ylabel('Number of Checks')
     plt.title('Total Number of Checks by Month (2015 - 2018)')
     plt.legend(loc='best')
+
+    # Add thousands separator to y axis
+    ax = plt.gca()
+    ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
     plt.show()
 
