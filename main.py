@@ -4,14 +4,12 @@ import pandas as pd
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 months_dict = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
+               "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
 
 data_path = "data/nics-firearm-background-checks.csv"
 
 # Common dataframe used by each plot function
-df = pd.read_csv(data_path, skiprows=1,  encoding = "ISO-8859-1", sep=',',
-                 names=('month', 'state', 'permit', 'permit_recheck','handgun', 'long_gun',
-                        'other_gun', 'multiple', 'other_sale_types', 'checks_combined'))
+df = pd.read_csv(data_path, sep=',', header=0)
 
 
 def set_pandas_options():
@@ -21,12 +19,13 @@ def set_pandas_options():
 
 
 def clean_data():
-    df_dates = df["month"].str.split("-", expand=True).rename(columns={0: 'year', 1: 'month'})
+    df_dates = df["month"].str.split(
+        "-", expand=True).rename(columns={0: 'year', 1: 'month'})
 
     counter = 0
-    # Fix the issue where the dataset's date format is in both yy-mmm and mmm-yy.
+    # Fix the issue where the df's date format is in both yy-mmm and mmm-yy.
     for year in df_dates['year']:
-        # if year is found in months, swap the values of df_dates['year'] and df_dates['month']
+        # if year is found in months, swap the values of df year and month
         if year in months:
             df_dates['year'][counter], df_dates['month'][counter] = \
                 df_dates['month'][counter], df_dates['year'][counter]
@@ -85,7 +84,8 @@ def plot_figure():
 
     # Add thousands separator to y axis
     ax = plt.gca()
-    ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+    ax.get_yaxis().set_major_formatter(
+        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
     plt.show()
 
