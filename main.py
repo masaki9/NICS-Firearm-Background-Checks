@@ -90,7 +90,39 @@ def plot_figure():
     plt.show()
 
 
+def plot_figure2():
+    # Total number of checks by month between 2016 and 2018 (inclusive)
+    df_recent_years = df[(df['year'].between(2016, 2018, inclusive=True))]\
+        .groupby('month').sum().reset_index()
+
+    plt.subplots(nrows=3, ncols=1, figsize=(12, 10))
+
+    plt.subplot(3, 1, 1)
+    plt.bar(-1 + df_recent_years['month'], df_recent_years['handgun'],
+            color="lightpink", label='Handgun')
+    plt.xticks(df_recent_years.index, months)
+    plt.legend(loc='best')
+
+    plt.title("Total Number of Checks by Month by Gun Type (2016 - 2018)")
+
+    plt.subplot(3, 1, 2)
+    plt.bar(-1 + df_recent_years['month'], df_recent_years['long_gun'],
+            color="lightgreen", label='Long Gun')
+    plt.xticks(df_recent_years.index, months)
+    plt.ylabel("Number of Checks")
+    plt.legend(loc='best')
+
+    plt.subplot(3, 1, 3)
+    plt.bar(-1 + df_recent_years['month'], df_recent_years['other_gun'],
+            color="lightblue", label='Other Gun Type')
+    plt.xticks(df_recent_years.index, months)
+    plt.legend(loc='best')
+
+    plt.show()
+
+
 if __name__ == "__main__":
     set_pandas_options()
     clean_data()
     plot_figure()
+    plot_figure2()
