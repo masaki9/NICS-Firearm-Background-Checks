@@ -53,6 +53,12 @@ def clean_data():
     df.insert(1, "month", df_dates['month'].astype(int))
 
 
+def add_thousands_separator_yaxis():
+    ax = plt.gca()
+    ax.get_yaxis().set_major_formatter(
+        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+
+
 def plot_figure():
     # Create groups for years 2015 - 2018
     df_y2018 = df.groupby('year').get_group(2018)\
@@ -64,28 +70,24 @@ def plot_figure():
     df_y2015 = df.groupby('year').get_group(2015)\
         .groupby('month')['checks_combined'].sum().reset_index()
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(12, 8))
 
     # Plot lines for years 2015 - 2018
     plt.plot(-1 + df_y2018['month'], df_y2018['checks_combined'],
              ":.", color='magenta', label="2018")
     plt.plot(-1 + df_y2017['month'], df_y2017['checks_combined'],
-             "--.", color='green', label="2017")
+             "--.", color='limegreen', label="2017")
     plt.plot(-1 + df_y2016['month'], df_y2016['checks_combined'],
              "-.*", markersize=4, color='lightblue', label="2016")
     plt.plot(-1 + df_y2015['month'], df_y2015['checks_combined'],
-             "-*", markersize=4, color='beige', label="2015")
+             "-*", markersize=4, color='bisque', label="2015")
 
     plt.ylim(ymin=0)  # Set y axis to start from 0
     plt.xticks(df_y2018.index, months)
     plt.ylabel('Number of Checks')
     plt.title('Total Number of Checks by Month (2015 - 2018)')
     plt.legend(loc='best')
-
-    # Add thousands separator to y axis
-    ax = plt.gca()
-    ax.get_yaxis().set_major_formatter(
-        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+    add_thousands_separator_yaxis()
 
     plt.show()
 
@@ -95,28 +97,44 @@ def plot_figure2():
     df_recent_years = df[(df['year'].between(2016, 2018, inclusive=True))]\
         .groupby('month').sum().reset_index()
 
-    plt.subplots(nrows=3, ncols=1, figsize=(12, 10))
+    plt.subplots(nrows=5, ncols=1, figsize=(15, 15))
 
-    plt.subplot(3, 1, 1)
+    plt.subplot(5, 1, 1)
+    plt.title("Total Number of Checks by Month by Type (2016 - 2018)")
     plt.bar(-1 + df_recent_years['month'], df_recent_years['handgun'],
             color="lightpink", label='Handgun')
     plt.xticks(df_recent_years.index, months)
     plt.legend(loc='best')
+    add_thousands_separator_yaxis()
 
-    plt.title("Total Number of Checks by Month by Gun Type (2016 - 2018)")
-
-    plt.subplot(3, 1, 2)
+    plt.subplot(5, 1, 2)
     plt.bar(-1 + df_recent_years['month'], df_recent_years['long_gun'],
             color="lightgreen", label='Long Gun')
     plt.xticks(df_recent_years.index, months)
-    plt.ylabel("Number of Checks")
     plt.legend(loc='best')
+    add_thousands_separator_yaxis()
 
-    plt.subplot(3, 1, 3)
+    plt.subplot(5, 1, 3)
     plt.bar(-1 + df_recent_years['month'], df_recent_years['other_gun'],
             color="lightblue", label='Other Gun Type')
     plt.xticks(df_recent_years.index, months)
+    plt.ylabel("Number of Checks")
     plt.legend(loc='best')
+    add_thousands_separator_yaxis()
+
+    plt.subplot(5, 1, 4)
+    plt.bar(-1 + df_recent_years['month'], df_recent_years['multiple'],
+            color="lavender", label='Multiple')
+    plt.xticks(df_recent_years.index, months)
+    plt.legend(loc='best')
+    add_thousands_separator_yaxis()
+
+    plt.subplot(5, 1, 5)
+    plt.bar(-1 + df_recent_years['month'], df_recent_years['other_sale_types'],
+            color="beige", label='Other Types')
+    plt.xticks(df_recent_years.index, months)
+    plt.legend(loc='best')
+    add_thousands_separator_yaxis()
 
     plt.show()
 
