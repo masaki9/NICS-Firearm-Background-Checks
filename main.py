@@ -94,17 +94,17 @@ def plot_figure():
     plt.figure(figsize=(12, 8))
 
     # Plot lines for years 2015 - 2018
-    plt.plot(-1 + df_y2018['month'], df_y2018['checks_combined'],
+    plt.plot(df_y2018['month'], df_y2018['checks_combined'],
              ":.", color='magenta', label="2018")
-    plt.plot(-1 + df_y2017['month'], df_y2017['checks_combined'],
+    plt.plot(df_y2017['month'], df_y2017['checks_combined'],
              "--.", color='limegreen', label="2017")
-    plt.plot(-1 + df_y2016['month'], df_y2016['checks_combined'],
+    plt.plot(df_y2016['month'], df_y2016['checks_combined'],
              "-.*", markersize=4, color='lightblue', label="2016")
-    plt.plot(-1 + df_y2015['month'], df_y2015['checks_combined'],
+    plt.plot(df_y2015['month'], df_y2015['checks_combined'],
              "-*", markersize=4, color='bisque', label="2015")
 
     plt.ylim(ymin=0)  # Set y axis to start from 0
-    plt.xticks(df_y2018.index, months)
+    plt.xticks(df_y2018['month'], months)
     plt.ylabel('Number of Checks')
     plt.title('Total Number of Checks by Month (2015 - 2018)')
     plt.legend(loc='best')
