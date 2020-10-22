@@ -179,9 +179,30 @@ def plot_figure3():
     plt.show()
 
 
+def plot_figure4():
+    df_total = df[(df['year'].between(1999, 2018, inclusive=True))]\
+        .groupby('year').sum().reset_index()\
+        .rename(columns={'checks_combined': '# of checks'})
+
+    plt.figure(figsize=(20, 12))
+    plt.margins(x=0.01)
+    plt.title("Number of Checks by Year (1999 - 2018)")
+    plt.ylabel("Number of Checks")
+    plt.xticks(df_total['year'])
+    plt.plot(df_total['year'], df_total['# of checks'], color="goldenrod")
+    plt.bar(df_total['year'], df_total['# of checks'], color="wheat")
+
+    ax = plt.gca()
+    add_value_labels(ax)
+
+    add_thousands_separator_yaxis()
+    plt.show()
+
+
 if __name__ == "__main__":
     set_pandas_options()
     clean_data()
     plot_figure()
     plot_figure2()
     plot_figure3()
+    plot_figure4()
