@@ -139,8 +139,24 @@ def plot_figure2():
     plt.show()
 
 
+def plot_figure3():
+    df_states = df.groupby('state')['checks_combined']\
+        .sum().reset_index().rename(columns={'checks_combined': '# of checks'})
+
+    plt.figure(figsize=(16, 14))
+    plt.ticklabel_format(style='plain')
+    plt.title("Number of Checks by State (Nov 1998 - Oct 2019)")
+    plt.ylabel("Number of Checks")
+    plt.xticks(df_states.index, rotation='vertical')
+    plt.bar(df_states['state'], df_states['# of checks'], color="brown")
+
+    add_thousands_separator_yaxis()
+    plt.show()
+
+
 if __name__ == "__main__":
     set_pandas_options()
     clean_data()
     plot_figure()
     plot_figure2()
+    plot_figure3()
