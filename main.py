@@ -59,6 +59,27 @@ def add_thousands_separator_yaxis():
         plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
 
+def add_value_labels(ax, spacing=5, decimal=0):
+    # For each bar, place a label
+    for rect in ax.patches:
+        y_value = rect.get_height()
+        x_value = rect.get_x() + rect.get_width() / 2
+
+        space = spacing  # Space between bar and label
+        va = 'bottom'  # Vertical alignment
+
+        # If value of bar is negative, place label below bar
+        if y_value < 0:
+            space *= -1
+            va = 'top'
+
+        # Use y as label and format number with decimal
+        label = "{1:,.{0}f}".format(decimal, y_value)
+
+        ax.annotate(label, (x_value, y_value), xytext=(0, space),
+                    textcoords="offset points", ha='center', va=va)
+
+
 def plot_figure():
     # Create groups for years 2015 - 2018
     df_y2018 = df.groupby('year').get_group(2018)\
@@ -140,14 +161,19 @@ def plot_figure2():
 
 
 def plot_figure3():
-    df_states = df.groupby('state')['checks_combined']\
-        .sum().reset_index().rename(columns={'checks_combined': '# of checks'})
+    df_top10_states = df.groupby('state')['checks_combined'].sum()\
+        .reset_index().rename(columns={'checks_combined': '# of checks'})\
+        .sort_values(by='# of checks', ascending=False)[:10]
 
-    plt.figure(figsize=(16, 14))
-    plt.title("Number of Checks by State (Nov 1998 - Oct 2019)")
+    plt.figure(figsize=(16, 12))
+    plt.title("Top 10 States by Number of Checks (Nov 1998 - Oct 2019)")
     plt.ylabel("Number of Checks")
     plt.xticks(rotation='vertical')
-    plt.bar(df_states['state'], df_states['# of checks'], color="brown")
+    plt.bar(df_top10_states['state'], df_top10_states['# of checks'],
+            color="lightcoral")
+
+    ax = plt.gca()
+    add_value_labels(ax)
 
     add_thousands_separator_yaxis()
     plt.show()
@@ -156,6 +182,6 @@ def plot_figure3():
 if __name__ == "__main__":
     set_pandas_options()
     clean_data()
-    # plot_figure()
-    # plot_figure2()
+    plot_figure()
+    plot_figure2()
     plot_figure3()
