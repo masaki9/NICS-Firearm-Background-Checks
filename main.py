@@ -122,38 +122,38 @@ def plot_num_checks_by_type_recent_years():
 
     plt.subplot(5, 1, 1)
     plt.title("Total Number of Checks by Month by Type (2016 - 2018)")
-    plt.bar(-1 + df_recent_years['month'], df_recent_years['handgun'],
+    plt.bar(df_recent_years['month'], df_recent_years['handgun'],
             color="lightpink", label='Handgun')
-    plt.xticks(df_recent_years.index, months)
+    plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
     plt.subplot(5, 1, 2)
-    plt.bar(-1 + df_recent_years['month'], df_recent_years['long_gun'],
+    plt.bar(df_recent_years['month'], df_recent_years['long_gun'],
             color="lightgreen", label='Long Gun')
-    plt.xticks(df_recent_years.index, months)
+    plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
     plt.subplot(5, 1, 3)
-    plt.bar(-1 + df_recent_years['month'], df_recent_years['other_gun'],
+    plt.bar(df_recent_years['month'], df_recent_years['other_gun'],
             color="lightblue", label='Other Gun Type')
-    plt.xticks(df_recent_years.index, months)
+    plt.xticks(df_recent_years['month'], months)
     plt.ylabel("Number of Checks")
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
     plt.subplot(5, 1, 4)
-    plt.bar(-1 + df_recent_years['month'], df_recent_years['multiple'],
+    plt.bar(df_recent_years['month'], df_recent_years['multiple'],
             color="lavender", label='Multiple')
-    plt.xticks(df_recent_years.index, months)
+    plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
     plt.subplot(5, 1, 5)
-    plt.bar(-1 + df_recent_years['month'], df_recent_years['other_sale_types'],
+    plt.bar(df_recent_years['month'], df_recent_years['other_sale_types'],
             color="beige", label='Other Types')
-    plt.xticks(df_recent_years.index, months)
+    plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
