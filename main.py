@@ -80,7 +80,7 @@ def add_value_labels(ax, spacing=5, decimal=0):
                     textcoords="offset points", ha='center', va=va)
 
 
-def plot_figure():
+def plot_num_checks_recent_years():
     # Create groups for years 2015 - 2018
     df_y2018 = df.groupby('year').get_group(2018)\
         .groupby('month')['checks_combined'].sum().reset_index()
@@ -113,7 +113,7 @@ def plot_figure():
     plt.show()
 
 
-def plot_figure2():
+def plot_num_checks_by_type_recent_years():
     # Total number of checks by month between 2016 and 2018 (inclusive)
     df_recent_years = df[(df['year'].between(2016, 2018, inclusive=True))]\
         .groupby('month').sum().reset_index()
@@ -160,7 +160,7 @@ def plot_figure2():
     plt.show()
 
 
-def plot_figure3():
+def plot_top10_states_by_num_checks():
     df_top10_states = df.groupby('state')['checks_combined'].sum()\
         .reset_index().rename(columns={'checks_combined': '# of checks'})\
         .sort_values(by='# of checks', ascending=False)[:10]
@@ -179,7 +179,7 @@ def plot_figure3():
     plt.show()
 
 
-def plot_figure4():
+def plot_num_checks_by_year():
     df_total = df[(df['year'].between(1999, 2018, inclusive=True))]\
         .groupby('year').sum().reset_index()\
         .rename(columns={'checks_combined': '# of checks'})
@@ -202,7 +202,7 @@ def plot_figure4():
 if __name__ == "__main__":
     set_pandas_options()
     clean_data()
-    plot_figure()
-    plot_figure2()
-    plot_figure3()
-    plot_figure4()
+    plot_num_checks_by_year()
+    plot_num_checks_recent_years()
+    plot_num_checks_by_type_recent_years()
+    plot_top10_states_by_num_checks()
