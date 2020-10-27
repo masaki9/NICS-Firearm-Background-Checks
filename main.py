@@ -147,17 +147,33 @@ def plot_top10_states_by_num_checks():
     df_top10_states = df.groupby('state')['totals'].sum()\
         .reset_index().sort_values(by='totals', ascending=False)[:10]
 
-    plt.figure(figsize=(16, 12))
-    plt.title("Top 10 States by Number of Checks (Nov 1998 - Oct 2019)")
+    plt.subplots(nrows=2, ncols=1, figsize=(15, 15))
+
+    plt.subplot(2, 1, 1)
+    plt.title("Top 10 States by Number of "
+              "Firearm Background Checks (Nov 1998 - Sep 2020)")
     plt.ylabel("Number of Checks")
-    plt.xticks(rotation='horizontal')
     plt.bar(df_top10_states['state'], df_top10_states['totals'],
             color="lightcoral")
 
     ax = plt.gca()
     add_value_labels(ax)
-
     add_thousands_separator_yaxis()
+
+    df_bottom10_states = df.groupby('state')['totals'].sum()\
+        .reset_index().sort_values(by='totals', ascending=False)[-10:]
+
+    plt.subplot(2, 1, 2)
+    plt.title("Bottom 10 States by Number of "
+              "Firearm Background Checks (Nov 1998 - Sep 2020)")
+    plt.ylabel("Number of Checks")
+    plt.bar(df_bottom10_states['state'], df_bottom10_states['totals'],
+            color="paleturquoise")
+
+    ax = plt.gca()
+    add_value_labels(ax)
+    add_thousands_separator_yaxis()
+
     plt.show()
 
 
