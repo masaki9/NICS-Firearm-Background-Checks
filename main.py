@@ -145,14 +145,13 @@ def plot_num_checks_by_type_recent_years():
 
 def plot_top10_states_by_num_checks():
     df_top10_states = df.groupby('state')['totals'].sum()\
-        .reset_index().rename(columns={'totals': '# of checks'})\
-        .sort_values(by='# of checks', ascending=False)[:10]
+        .reset_index().sort_values(by='totals', ascending=False)[:10]
 
     plt.figure(figsize=(16, 12))
     plt.title("Top 10 States by Number of Checks (Nov 1998 - Oct 2019)")
     plt.ylabel("Number of Checks")
-    plt.xticks(rotation='vertical')
-    plt.bar(df_top10_states['state'], df_top10_states['# of checks'],
+    plt.xticks(rotation='horizontal')
+    plt.bar(df_top10_states['state'], df_top10_states['totals'],
             color="lightcoral")
 
     ax = plt.gca()
@@ -164,16 +163,15 @@ def plot_top10_states_by_num_checks():
 
 def plot_num_checks_by_year():
     df_total = df[(df['year'].between(1999, 2019, inclusive=True))]\
-        .groupby('year').sum().reset_index()\
-        .rename(columns={'totals': '# of checks'})
+        .groupby('year').sum().reset_index()
 
     plt.figure(figsize=(20, 12))
     plt.margins(x=0.01)
     plt.title("Number of Firearm Background Checks by Year (1999 - 2019)")
     plt.ylabel("Number of Checks")
     plt.xticks(df_total['year'])
-    plt.plot(df_total['year'], df_total['# of checks'], color="goldenrod")
-    plt.bar(df_total['year'], df_total['# of checks'], color="wheat")
+    plt.plot(df_total['year'], df_total['totals'], color="goldenrod")
+    plt.bar(df_total['year'], df_total['totals'], color="wheat")
 
     ax = plt.gca()
     add_value_labels(ax)
