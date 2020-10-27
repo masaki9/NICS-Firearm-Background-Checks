@@ -3,12 +3,8 @@ import pandas as pd
 
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-months_dict = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-               "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
 
 data_path = "data/nics-firearm-background-checks.csv"
-
-# Common dataframe used by each plot function
 df = pd.read_csv(data_path, sep=',', header=0)
 
 
@@ -22,33 +18,8 @@ def clean_data():
     df_dates = df["month"].str.split(
         "-", expand=True).rename(columns={0: 'year', 1: 'month'})
 
-    counter = 0
-    # Fix the issue where the df's date format is in both yy-mmm and mmm-yy.
-    for year in df_dates['year']:
-        # if year is found in months, swap the values of df year and month
-        if year in months:
-            df_dates['year'][counter], df_dates['month'][counter] = \
-                df_dates['month'][counter], df_dates['year'][counter]
-        counter += 1
-
-    counter = 0
-    # Convert months to numbers so that they can be sorted properly
-    for month in df_dates['month']:
-        df_dates['month'][counter] = months_dict[month]
-        counter += 1
-
-    counter = 0
-    # Convert yy format to yyyy
-    for year in df_dates['year']:
-        if year == '99' or year == '98':
-            df_dates['year'][counter] = "19" + year
-        else:
-            df_dates['year'][counter] = "20" + year
-        counter += 1
-
     df.drop(columns=["month"], inplace=True)
 
-    # Insert into df, year and month values converted to integers
     df.insert(0, "year", df_dates['year'].astype(int))
     df.insert(1, "month", df_dates['month'].astype(int))
 
@@ -81,32 +52,36 @@ def add_value_labels(ax, spacing=5, decimal=0):
 
 
 def plot_num_checks_recent_years():
-    # Create groups for years 2015 - 2018
+    # Create groups for years 2015 - 2019
+    df_y2019 = df.groupby('year').get_group(2019)\
+        .groupby('month')['totals'].sum().reset_index()
     df_y2018 = df.groupby('year').get_group(2018)\
-        .groupby('month')['checks_combined'].sum().reset_index()
+        .groupby('month')['totals'].sum().reset_index()
     df_y2017 = df.groupby('year').get_group(2017)\
-        .groupby('month')['checks_combined'].sum().reset_index()
+        .groupby('month')['totals'].sum().reset_index()
     df_y2016 = df.groupby('year').get_group(2016)\
-        .groupby('month')['checks_combined'].sum().reset_index()
+        .groupby('month')['totals'].sum().reset_index()
     df_y2015 = df.groupby('year').get_group(2015)\
-        .groupby('month')['checks_combined'].sum().reset_index()
+        .groupby('month')['totals'].sum().reset_index()
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(16, 12))
 
-    # Plot lines for years 2015 - 2018
-    plt.plot(df_y2018['month'], df_y2018['checks_combined'],
+    # Plot lines for years 2015 - 2019
+    plt.plot(df_y2019['month'], df_y2019['totals'],
+             "--p", color='indianred', label="2019")
+    plt.plot(df_y2018['month'], df_y2018['totals'],
              ":.", color='magenta', label="2018")
-    plt.plot(df_y2017['month'], df_y2017['checks_combined'],
+    plt.plot(df_y2017['month'], df_y2017['totals'],
              "--.", color='limegreen', label="2017")
-    plt.plot(df_y2016['month'], df_y2016['checks_combined'],
+    plt.plot(df_y2016['month'], df_y2016['totals'],
              "-.*", markersize=4, color='lightblue', label="2016")
-    plt.plot(df_y2015['month'], df_y2015['checks_combined'],
+    plt.plot(df_y2015['month'], df_y2015['totals'],
              "-*", markersize=4, color='bisque', label="2015")
 
     plt.ylim(ymin=0)  # Set y axis to start from 0
-    plt.xticks(df_y2018['month'], months)
+    plt.xticks(df_y2019['month'], months)
     plt.ylabel('Number of Checks')
-    plt.title('Total Number of Checks by Month (2015 - 2018)')
+    plt.title('Number of Firearm Background Checks by Month (2015 - 2019)')
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
@@ -114,14 +89,15 @@ def plot_num_checks_recent_years():
 
 
 def plot_num_checks_by_type_recent_years():
-    # Total number of checks by month between 2016 and 2018 (inclusive)
-    df_recent_years = df[(df['year'].between(2016, 2018, inclusive=True))]\
+    # Total number of checks by month between 2015 and 2019 (inclusive)
+    df_recent_years = df[(df['year'].between(2015, 2019, inclusive=True))]\
         .groupby('month').sum().reset_index()
 
     plt.subplots(nrows=5, ncols=1, figsize=(15, 15))
 
     plt.subplot(5, 1, 1)
-    plt.title("Total Number of Checks by Month by Type (2016 - 2018)")
+    t = "Number of Firearm Background Checks by Month by Type (2015 - 2019)"
+    plt.title(t)
     plt.bar(df_recent_years['month'], df_recent_years['handgun'],
             color="lightpink", label='Handgun')
     plt.xticks(df_recent_years['month'], months)
@@ -136,7 +112,7 @@ def plot_num_checks_by_type_recent_years():
     add_thousands_separator_yaxis()
 
     plt.subplot(5, 1, 3)
-    plt.bar(df_recent_years['month'], df_recent_years['other_gun'],
+    plt.bar(df_recent_years['month'], df_recent_years['other'],
             color="lightblue", label='Other Gun Type')
     plt.xticks(df_recent_years['month'], months)
     plt.ylabel("Number of Checks")
@@ -145,14 +121,21 @@ def plot_num_checks_by_type_recent_years():
 
     plt.subplot(5, 1, 4)
     plt.bar(df_recent_years['month'], df_recent_years['multiple'],
-            color="lavender", label='Multiple')
+            color="lavender", label='Multiple Gun Types Selected')
     plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
 
+    df_other_types = df_recent_years.copy()
+    df_other_types.drop(columns=["year", "month", "permit", "permit_recheck",
+                                 "handgun", "long_gun", "other", "multiple",
+                                 "totals"], inplace=True)
+
+    df_recent_years['other_types'] = df_other_types.sum(axis=1)
+
     plt.subplot(5, 1, 5)
-    plt.bar(df_recent_years['month'], df_recent_years['other_sale_types'],
-            color="beige", label='Other Types')
+    plt.bar(df_recent_years['month'], df_recent_years['other_types'],
+            color="beige", label='Other Check Types')
     plt.xticks(df_recent_years['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
@@ -161,36 +144,50 @@ def plot_num_checks_by_type_recent_years():
 
 
 def plot_top10_states_by_num_checks():
-    df_top10_states = df.groupby('state')['checks_combined'].sum()\
-        .reset_index().rename(columns={'checks_combined': '# of checks'})\
-        .sort_values(by='# of checks', ascending=False)[:10]
+    df_top10_states = df.groupby('state')['totals'].sum()\
+        .reset_index().sort_values(by='totals', ascending=False)[:10]
 
-    plt.figure(figsize=(16, 12))
-    plt.title("Top 10 States by Number of Checks (Nov 1998 - Oct 2019)")
+    plt.subplots(nrows=2, ncols=1, figsize=(15, 15))
+
+    plt.subplot(2, 1, 1)
+    plt.title("Top 10 States by Number of "
+              "Firearm Background Checks (Nov 1998 - Sep 2020)")
     plt.ylabel("Number of Checks")
-    plt.xticks(rotation='vertical')
-    plt.bar(df_top10_states['state'], df_top10_states['# of checks'],
+    plt.bar(df_top10_states['state'], df_top10_states['totals'],
             color="lightcoral")
 
     ax = plt.gca()
     add_value_labels(ax)
-
     add_thousands_separator_yaxis()
+
+    df_bottom10_states = df.groupby('state')['totals'].sum()\
+        .reset_index().sort_values(by='totals', ascending=False)[-10:]
+
+    plt.subplot(2, 1, 2)
+    plt.title("Bottom 10 States by Number of "
+              "Firearm Background Checks (Nov 1998 - Sep 2020)")
+    plt.ylabel("Number of Checks")
+    plt.bar(df_bottom10_states['state'], df_bottom10_states['totals'],
+            color="paleturquoise")
+
+    ax = plt.gca()
+    add_value_labels(ax)
+    add_thousands_separator_yaxis()
+
     plt.show()
 
 
 def plot_num_checks_by_year():
-    df_total = df[(df['year'].between(1999, 2018, inclusive=True))]\
-        .groupby('year').sum().reset_index()\
-        .rename(columns={'checks_combined': '# of checks'})
+    df_total = df[(df['year'].between(1999, 2019, inclusive=True))]\
+        .groupby('year').sum().reset_index()
 
     plt.figure(figsize=(20, 12))
     plt.margins(x=0.01)
-    plt.title("Number of Checks by Year (1999 - 2018)")
+    plt.title("Number of Firearm Background Checks by Year (1999 - 2019)")
     plt.ylabel("Number of Checks")
     plt.xticks(df_total['year'])
-    plt.plot(df_total['year'], df_total['# of checks'], color="goldenrod")
-    plt.bar(df_total['year'], df_total['# of checks'], color="wheat")
+    plt.plot(df_total['year'], df_total['totals'], color="goldenrod")
+    plt.bar(df_total['year'], df_total['totals'], color="wheat")
 
     ax = plt.gca()
     add_value_labels(ax)
