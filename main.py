@@ -17,6 +17,14 @@ def clean_data():
     df.insert(0, "year", df_dates['year'].astype(int))
     df.insert(1, "month", df_dates['month'].astype(int))
 
+    df_other_types = df.copy()
+    df_other_types.drop(columns=["year", "month", "permit", "permit_recheck",
+                                 "handgun", "long_gun", "other", "multiple",
+                                 "totals"], inplace=True)
+
+    # Other types of transactions such as pre-pawn, rentals, private sale etc.
+    df['other_types'] = df_other_types.sum(axis=1)
+
 
 def add_thousands_separator_yaxis():
     ax = plt.gca()
@@ -30,19 +38,9 @@ def add_value_labels(ax, spacing=5, decimal=0):
         y_value = rect.get_height()
         x_value = rect.get_x() + rect.get_width() / 2
 
-        space = spacing  # Space between bar and label
-        va = 'bottom'  # Vertical alignment
-
-        # If value of bar is negative, place label below bar
-        if y_value < 0:
-            space *= -1
-            va = 'top'
-
-        # Use y as label and format number with decimal
         label = "{1:,.{0}f}".format(decimal, y_value)
-
-        ax.annotate(label, (x_value, y_value), xytext=(0, space),
-                    textcoords="offset points", ha='center', va=va)
+        ax.annotate(label, (x_value, y_value), xytext=(0, spacing),
+                    textcoords="offset points", ha='center', va='bottom')
 
 
 def plot_num_checks_recent_years():
@@ -82,37 +80,37 @@ def plot_num_checks_recent_years():
     plt.show()
 
 
-def plot_num_checks_by_type_recent_years():
-    # Total number of checks by month between 2015 and 2019 (inclusive)
-    df_recent_years = df[(df['year'].between(2015, 2019, inclusive=True))]\
+def plot_num_checks_by_month_by_type():
+    df_by_month = df[['month', 'handgun', 'long_gun',
+                      'other', 'multiple', 'other_types']]\
         .groupby('month').sum().reset_index()
 
     plt.subplots(nrows=5, ncols=1, figsize=(16, 16))
 
     plt.subplot(5, 1, 1)
-    t = "Number of Firearm Background Checks by Month by Type (2015 - 2019)"
-    plt.title(t)
-    plt.bar(df_recent_years['month'], df_recent_years['handgun'],
+    plt.title("Number of Firearm Background Checks by Month "
+              "by Type (Nov 1998 - Oct 2020)")
+    plt.bar(df_by_month['month'], df_by_month['handgun'],
             color="lightpink", label='Handgun')
-    plt.xticks(df_recent_years['month'], months)
+    plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
     ax = plt.gca()
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 2)
-    plt.bar(df_recent_years['month'], df_recent_years['long_gun'],
+    plt.bar(df_by_month['month'], df_by_month['long_gun'],
             color="lightgreen", label='Long Gun')
-    plt.xticks(df_recent_years['month'], months)
+    plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
     ax = plt.gca()
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 3)
-    plt.bar(df_recent_years['month'], df_recent_years['other'],
+    plt.bar(df_by_month['month'], df_by_month['other'],
             color="lightblue", label='Other Gun Type')
-    plt.xticks(df_recent_years['month'], months)
+    plt.xticks(df_by_month['month'], months)
     plt.ylabel("Number of Checks")
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
@@ -120,25 +118,18 @@ def plot_num_checks_by_type_recent_years():
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 4)
-    plt.bar(df_recent_years['month'], df_recent_years['multiple'],
+    plt.bar(df_by_month['month'], df_by_month['multiple'],
             color="lavender", label='Multiple Gun Types Selected')
-    plt.xticks(df_recent_years['month'], months)
+    plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
     ax = plt.gca()
     add_value_labels(ax, spacing=-15)
 
-    df_other_types = df_recent_years.copy()
-    df_other_types.drop(columns=["year", "month", "permit", "permit_recheck",
-                                 "handgun", "long_gun", "other", "multiple",
-                                 "totals"], inplace=True)
-
-    df_recent_years['other_types'] = df_other_types.sum(axis=1)
-
     plt.subplot(5, 1, 5)
-    plt.bar(df_recent_years['month'], df_recent_years['other_types'],
+    plt.bar(df_by_month['month'], df_by_month['other_types'],
             color="beige", label='Other Types of Transactions')
-    plt.xticks(df_recent_years['month'], months)
+    plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     add_thousands_separator_yaxis()
     ax = plt.gca()
@@ -200,9 +191,34 @@ def plot_num_checks_by_year():
     plt.show()
 
 
+def plot_num_checks_by_type():
+    df_total = df[['handgun', 'long_gun',
+                   'other', 'multiple', 'other_types']].sum().reset_index()\
+        .rename(columns={'index': 'type', 0: 'total'})
+
+    plt.figure(figsize=(15, 12))
+    plt.title("Number of Firearm Background Checks by Type "
+              "(Nov 1998 - Oct 2020)")
+    plt.ylabel("Number of Checks")
+
+    bar_colors = ['lightpink', 'lightgreen', 'lightblue', 'lavender', 'beige']
+    plt.bar(df_total['type'], df_total['total'], color=bar_colors)
+
+    x_labels = ['Handgun', 'Long Gun', 'Other Gun Type',
+                'Multiple Gun Types Selected', 'Other Types of Transactions']
+    plt.xticks(df_total['type'], x_labels)
+
+    add_thousands_separator_yaxis()
+    ax = plt.gca()
+    add_value_labels(ax)
+
+    plt.show()
+
+
 if __name__ == "__main__":
     clean_data()
     plot_num_checks_by_year()
     plot_num_checks_recent_years()
-    plot_num_checks_by_type_recent_years()
+    plot_num_checks_by_type()
+    plot_num_checks_by_month_by_type()
     plot_top10_states_by_num_checks()
