@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import pandas as pd
 import geopandas as gpd
 
@@ -230,6 +231,16 @@ def add_labels_and_outlines(gdf, ax, offset=0.5):
     gdf.boundary.plot(ax=ax, color='black', linewidth=0.75)
 
 
+def format_map():
+    ax = plt.gca()
+    ax.get_yaxis().set_major_formatter(
+        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+
+
+def ticks_in_mil(x, pos):
+    return "{:.0f}M".format(x / 1000000)
+
+
 def plot_num_checks_map():
     df_total_by_state = df.groupby('state')['totals'].sum()\
         .reset_index().sort_values(by='state', ascending=True)
@@ -257,7 +268,7 @@ def plot_num_checks_map():
                              'orientation': "vertical",
                              'shrink': 0.69,
                              'pad': 0,
-                             'format': '%.0f'})
+                             'format': ticker.FuncFormatter(ticks_in_mil)})
 
     ax2 = fig.add_subplot(gs[-1, 0])
     add_labels_and_outlines(alaska, ax2, 4)
