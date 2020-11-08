@@ -216,6 +216,20 @@ def plot_num_checks_by_type():
     plt.show()
 
 
+def add_labels_and_outlines(gdf, ax, offset=0.5):
+    gdf.apply(lambda x: ax.annotate(
+        s=x.NAME, xy=x.geometry.centroid.coords[0],
+        ha='center', color='black', fontsize=9), axis=1)
+
+    gdf.apply(lambda x: ax.annotate(
+        s="{:2.2f}M".format(x.totals/1000000),
+        xy=(x.geometry.centroid.coords[0][0],
+            x.geometry.centroid.coords[0][1]-offset),
+        ha='center', color='black', fontsize=9), axis=1)
+
+    gdf.boundary.plot(ax=ax, color='black', linewidth=0.75)
+
+
 def plot_num_checks_map():
     df_total_by_state = df.groupby('state')['totals'].sum()\
         .reset_index().sort_values(by='state', ascending=True)
@@ -223,32 +237,44 @@ def plot_num_checks_map():
     states = pd.merge(gdf_states, df_total_by_state,
                       left_on='NAME', right_on='state', how='inner')
 
+    alaska = states[states['NAME'] == 'Alaska']
+    guam = states[states['NAME'] == 'Guam']
+    hawaii = states[states['NAME'] == 'Hawaii']
+    puerto_rico = states[states['NAME'] == 'Puerto Rico']
+
     exclude_list = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
     states = states[~states['NAME'].isin(exclude_list)]
 
-    fig, ax = plt.subplots(figsize=(30, 20))
+    fig = plt.figure(constrained_layout=True, figsize=(24, 16))
+    gs = fig.add_gridspec(nrows=8, ncols=4)
 
-    states.apply(lambda x: ax.annotate(
-        s=x.NAME, xy=x.geometry.centroid.coords[0],
-        ha='center', color='black', fontsize=9), axis=1)
-
-    states.apply(lambda x: ax.annotate(
-        s="{:2.2f}M".format(x.totals/1000000),
-        xy=(x.geometry.centroid.coords[0][0],
-            x.geometry.centroid.coords[0][1]-0.5),
-        ha='center', color='black', fontsize=9), axis=1)
-
-    states.boundary.plot(ax=ax, color='black', linewidth=0.75)
-
-    states.plot(ax=ax, cmap='Reds', column='totals', legend=True,
+    ax1 = fig.add_subplot(gs[:-1, :])
+    plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
+              size=18)
+    add_labels_and_outlines(states, ax1)
+    states.plot(ax=ax1, cmap='Reds', column='totals', legend=True,
                 legend_kwds={'label': "Number of Checks",
                              'orientation': "vertical",
                              'shrink': 0.69,
                              'pad': 0,
                              'format': '%.0f'})
 
-    plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
-              size=18)
+    ax2 = fig.add_subplot(gs[-1, 0])
+    add_labels_and_outlines(alaska, ax2, 4)
+    alaska.plot(ax=ax2, cmap='Reds', column='totals')
+
+    ax3 = fig.add_subplot(gs[-1, 1])
+    add_labels_and_outlines(hawaii, ax3, 0.9)
+    hawaii.plot(ax=ax3, cmap='Reds', column='totals')
+
+    ax4 = fig.add_subplot(gs[-1, 2])
+    add_labels_and_outlines(guam, ax4, 0.05)
+    guam.plot(ax=ax4, cmap='Reds', column='totals')
+
+    ax5 = fig.add_subplot(gs[-1, 3])
+    add_labels_and_outlines(puerto_rico, ax5, 0.1)
+    puerto_rico.plot(ax=ax5, cmap='Reds', column='totals')
+
     plt.show()
 
 
