@@ -254,29 +254,32 @@ def plot_num_checks_map():
     puerto_rico = states[states['NAME'] == 'Puerto Rico']
 
     exclude_list = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
-    states = states[~states['NAME'].isin(exclude_list)]
+    contiguous = states[~states['NAME'].isin(exclude_list)]
 
     fig = plt.figure(constrained_layout=True, figsize=(24, 16))
     gs = fig.add_gridspec(nrows=8, ncols=4)
 
     ax1 = fig.add_subplot(gs[:-1, :])
     plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
-              size=18)
-    add_labels_and_outlines(states, ax1)
-    states.plot(ax=ax1, cmap='Reds', column='totals', legend=True,
-                legend_kwds={'label': "Number of Checks",
-                             'orientation': "vertical",
-                             'shrink': 0.69,
-                             'pad': 0,
-                             'format': ticker.FuncFormatter(ticks_in_mil)})
+              size=20)
+    add_labels_and_outlines(contiguous, ax1)
+    contiguous.plot(ax=ax1, cmap='Reds', column='totals', legend=True,
+                    legend_kwds={'label': "Number of Checks",
+                                 'orientation': "vertical",
+                                 'shrink': 0.69,
+                                 'pad': 0,
+                                 'format': ticker.FuncFormatter(ticks_in_mil)})
 
     ax2 = fig.add_subplot(gs[-1, 0])
-    add_labels_and_outlines(alaska, ax2, 4)
+    add_labels_and_outlines(alaska, ax2, 2)
     alaska.plot(ax=ax2, cmap='Reds', column='totals')
+    plt.xlim(xmin=-182, xmax=-128)
 
     ax3 = fig.add_subplot(gs[-1, 1])
-    add_labels_and_outlines(hawaii, ax3, 0.9)
+    add_labels_and_outlines(hawaii, ax3, 0.4)
     hawaii.plot(ax=ax3, cmap='Reds', column='totals')
+    plt.xlim(xmin=-160.5, xmax=-154.5)
+    plt.ylim(ymin=18.5, ymax=22.5)
 
     ax4 = fig.add_subplot(gs[-1, 2])
     add_labels_and_outlines(guam, ax4, 0.05)
