@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import pandas as pd
+import geopandas as gpd
+
+df = pd.read_csv("data/nics-firearm-background-checks.csv", sep=',', header=0)
+gdf_states = gpd.read_file("data/cb_2018_us_state_500k.geojson")
 
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-data_path = "data/nics-firearm-background-checks.csv"
-df = pd.read_csv(data_path, sep=',', header=0)
 
 
 def clean_data():
@@ -26,20 +28,19 @@ def clean_data():
     df['other_types'] = df_other_types.sum(axis=1)
 
 
-def add_thousands_separator_yaxis():
-    ax = plt.gca()
+def add_thousands_separator_yaxis(ax):
     ax.get_yaxis().set_major_formatter(
         plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
 
-def add_value_labels(ax, spacing=5, decimal=0):
+def add_value_labels(ax, spacing=5, decimal=0, size=10):
     # For each bar, place a label
     for rect in ax.patches:
         y_value = rect.get_height()
         x_value = rect.get_x() + rect.get_width() / 2
 
-        label = "{1:,.{0}f}".format(decimal, y_value)
-        ax.annotate(label, (x_value, y_value), xytext=(0, spacing),
+        label = "{0:,.{1}f}".format(y_value, decimal)
+        ax.annotate(label, (x_value, y_value), xytext=(0, spacing), size=size,
                     textcoords="offset points", ha='center', va='bottom')
 
 
@@ -75,7 +76,8 @@ def plot_num_checks_recent_years():
     plt.ylabel('Number of Checks')
     plt.title('Number of Firearm Background Checks by Month (2015 - 2019)')
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
+    ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
 
     plt.show()
 
@@ -94,8 +96,8 @@ def plot_num_checks_by_month_by_type():
             color="lightpink", label='Handgun')
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 2)
@@ -103,8 +105,8 @@ def plot_num_checks_by_month_by_type():
             color="lightgreen", label='Long Gun')
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 3)
@@ -113,8 +115,8 @@ def plot_num_checks_by_month_by_type():
     plt.xticks(df_by_month['month'], months)
     plt.ylabel("Number of Checks")
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 4)
@@ -122,8 +124,8 @@ def plot_num_checks_by_month_by_type():
             color="lavender", label='Multiple Gun Types Selected')
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 5)
@@ -131,8 +133,8 @@ def plot_num_checks_by_month_by_type():
             color="beige", label='Other Types of Transactions')
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax, spacing=-15)
 
     plt.show()
@@ -153,7 +155,7 @@ def plot_top10_states_by_num_checks():
 
     ax = plt.gca()
     add_value_labels(ax)
-    add_thousands_separator_yaxis()
+    add_thousands_separator_yaxis(ax)
 
     df_bottom10_states = df.groupby('state')['totals'].sum()\
         .reset_index().sort_values(by='totals', ascending=False)[-10:]
@@ -167,7 +169,7 @@ def plot_top10_states_by_num_checks():
 
     ax = plt.gca()
     add_value_labels(ax)
-    add_thousands_separator_yaxis()
+    add_thousands_separator_yaxis(ax)
 
     plt.show()
 
@@ -186,8 +188,8 @@ def plot_num_checks_by_year():
 
     ax = plt.gca()
     add_value_labels(ax)
+    add_thousands_separator_yaxis(ax)
 
-    add_thousands_separator_yaxis()
     plt.show()
 
 
@@ -208,9 +210,84 @@ def plot_num_checks_by_type():
                 'Multiple Gun Types Selected', 'Other Types of Transactions']
     plt.xticks(df_total['type'], x_labels)
 
-    add_thousands_separator_yaxis()
     ax = plt.gca()
+    add_thousands_separator_yaxis(ax)
     add_value_labels(ax)
+
+    plt.show()
+
+
+def add_labels_and_outlines(gdf, ax, offset=0.5):
+    gdf.apply(lambda x: ax.annotate(
+        s=x.NAME, xy=x.geometry.centroid.coords[0],
+        ha='center', color='black', fontsize=9), axis=1)
+
+    gdf.apply(lambda x: ax.annotate(
+        s="{:2.2f}M".format(x.totals/1000000),
+        xy=(x.geometry.centroid.coords[0][0],
+            x.geometry.centroid.coords[0][1]-offset),
+        ha='center', color='black', fontsize=9), axis=1)
+
+    gdf.boundary.plot(ax=ax, color='black', linewidth=0.75)
+
+
+def format_map():
+    ax = plt.gca()
+    ax.get_yaxis().set_major_formatter(
+        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+
+
+def ticks_in_mil(x, pos):
+    return "{:.0f}M".format(x / 1000000)
+
+
+def plot_num_checks_map():
+    df_total_by_state = df.groupby('state')['totals'].sum()\
+        .reset_index().sort_values(by='state', ascending=True)
+
+    states = pd.merge(gdf_states, df_total_by_state,
+                      left_on='NAME', right_on='state', how='inner')
+
+    alaska = states[states['NAME'] == 'Alaska']
+    guam = states[states['NAME'] == 'Guam']
+    hawaii = states[states['NAME'] == 'Hawaii']
+    puerto_rico = states[states['NAME'] == 'Puerto Rico']
+
+    exclude_list = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
+    contiguous = states[~states['NAME'].isin(exclude_list)]
+
+    fig = plt.figure(constrained_layout=True, figsize=(24, 16))
+    gs = fig.add_gridspec(nrows=8, ncols=4)
+
+    ax1 = fig.add_subplot(gs[:-1, :])
+    plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
+              size=20)
+    add_labels_and_outlines(contiguous, ax1)
+    contiguous.plot(ax=ax1, cmap='Reds', column='totals', legend=True,
+                    legend_kwds={'label': "Number of Checks",
+                                 'orientation': "vertical",
+                                 'shrink': 0.69,
+                                 'pad': 0,
+                                 'format': ticker.FuncFormatter(ticks_in_mil)})
+
+    ax2 = fig.add_subplot(gs[-1, 0])
+    add_labels_and_outlines(alaska, ax2, 2)
+    alaska.plot(ax=ax2, cmap='Reds', column='totals')
+    plt.xlim(xmin=-182, xmax=-128)
+
+    ax3 = fig.add_subplot(gs[-1, 1])
+    add_labels_and_outlines(hawaii, ax3, 0.4)
+    hawaii.plot(ax=ax3, cmap='Reds', column='totals')
+    plt.xlim(xmin=-160.5, xmax=-154.5)
+    plt.ylim(ymin=18.5, ymax=22.5)
+
+    ax4 = fig.add_subplot(gs[-1, 2])
+    add_labels_and_outlines(guam, ax4, 0.05)
+    guam.plot(ax=ax4, cmap='Reds', column='totals')
+
+    ax5 = fig.add_subplot(gs[-1, 3])
+    add_labels_and_outlines(puerto_rico, ax5, 0.1)
+    puerto_rico.plot(ax=ax5, cmap='Reds', column='totals')
 
     plt.show()
 
@@ -221,4 +298,5 @@ if __name__ == "__main__":
     plot_num_checks_recent_years()
     plot_num_checks_by_type()
     plot_num_checks_by_month_by_type()
+    plot_num_checks_map()
     plot_top10_states_by_num_checks()
