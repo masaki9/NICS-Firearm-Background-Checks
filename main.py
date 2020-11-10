@@ -45,7 +45,6 @@ def add_value_labels(ax, spacing=5, decimal=0, size=10):
 
 
 def plot_num_checks_recent_years():
-    # Create groups for years 2015 - 2019
     df_y2019 = df.groupby('year').get_group(2019)\
         .groupby('month')['totals'].sum().reset_index()
     df_y2018 = df.groupby('year').get_group(2018)\
@@ -59,7 +58,6 @@ def plot_num_checks_recent_years():
 
     plt.figure(figsize=(16, 12))
 
-    # Plot lines for years 2015 - 2019
     plt.plot(df_y2019['month'], df_y2019['totals'],
              "--p", color='indianred', label="2019")
     plt.plot(df_y2018['month'], df_y2018['totals'],
@@ -217,24 +215,18 @@ def plot_num_checks_by_type():
     plt.show()
 
 
-def add_labels_and_outlines(gdf, ax, offset=0.5):
+def add_labels_and_outlines(gdf, ax, offset=0.4):
     gdf.apply(lambda x: ax.annotate(
-        s=x.NAME, xy=x.geometry.centroid.coords[0],
-        ha='center', color='black', fontsize=9), axis=1)
+        s=x.STUSPS, xy=x.geometry.centroid.coords[0],
+        ha='center', color='black', fontsize=10), axis=1)
 
     gdf.apply(lambda x: ax.annotate(
         s="{:2.2f}M".format(x.totals/1000000),
         xy=(x.geometry.centroid.coords[0][0],
             x.geometry.centroid.coords[0][1]-offset),
-        ha='center', color='black', fontsize=9), axis=1)
+        ha='center', color='black', fontsize=10), axis=1)
 
     gdf.boundary.plot(ax=ax, color='black', linewidth=0.75)
-
-
-def format_map():
-    ax = plt.gca()
-    ax.get_yaxis().set_major_formatter(
-        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
 
 def ticks_in_mil(x, pos):
@@ -248,13 +240,10 @@ def plot_num_checks_map():
     states = pd.merge(gdf_states, df_total_by_state,
                       left_on='NAME', right_on='state', how='inner')
 
-    alaska = states[states['NAME'] == 'Alaska']
-    guam = states[states['NAME'] == 'Guam']
-    hawaii = states[states['NAME'] == 'Hawaii']
-    puerto_rico = states[states['NAME'] == 'Puerto Rico']
-
-    exclude_list = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
-    contiguous = states[~states['NAME'].isin(exclude_list)]
+    separated = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
+    contiguous = states[~states['NAME'].isin(separated)]
+    alaska, guam, hawaii, puerto_rico = \
+        [states[states['NAME'] == state] for state in separated]
 
     fig = plt.figure(constrained_layout=True, figsize=(24, 16))
     gs = fig.add_gridspec(nrows=8, ncols=4)
@@ -276,17 +265,17 @@ def plot_num_checks_map():
     plt.xlim(xmin=-182, xmax=-128)
 
     ax3 = fig.add_subplot(gs[-1, 1])
-    add_labels_and_outlines(hawaii, ax3, 0.4)
+    add_labels_and_outlines(hawaii, ax3, 0.38)
     hawaii.plot(ax=ax3, cmap='Reds', column='totals')
     plt.xlim(xmin=-160.5, xmax=-154.5)
     plt.ylim(ymin=18.5, ymax=22.5)
 
     ax4 = fig.add_subplot(gs[-1, 2])
-    add_labels_and_outlines(guam, ax4, 0.05)
+    add_labels_and_outlines(guam, ax4, 0.048)
     guam.plot(ax=ax4, cmap='Reds', column='totals')
 
     ax5 = fig.add_subplot(gs[-1, 3])
-    add_labels_and_outlines(puerto_rico, ax5, 0.1)
+    add_labels_and_outlines(puerto_rico, ax5, 0.09)
     puerto_rico.plot(ax=ax5, cmap='Reds', column='totals')
 
     plt.show()
