@@ -28,24 +28,24 @@ def clean_data():
     df['other_types'] = df_other_types.sum(axis=1)
 
 
-def add_thousands_separator_yaxis(ax):
-    ax.get_yaxis().set_major_formatter(
-        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+def format_yaxis(ax, decimal=0):
+    ax.get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda y,
+                                       loc: "{0:.{1}f}M"
+                                       .format(int(y) / 1e+6, decimal)))
 
 
-def add_value_labels(ax, spacing=5, decimal=0, size=10):
+def add_bar_value_labels(ax, spacing=5, decimal=2, size=10):
     # For each bar, place a label
     for rect in ax.patches:
         y_value = rect.get_height()
         x_value = rect.get_x() + rect.get_width() / 2
 
-        label = "{0:,.{1}f}".format(y_value, decimal)
+        label = "{0:,.{1}f}M".format(y_value / 1e+6, decimal)
         ax.annotate(label, (x_value, y_value), xytext=(0, spacing), size=size,
                     textcoords="offset points", ha='center', va='bottom')
 
 
 def plot_num_checks_recent_years():
-    # Create groups for years 2015 - 2019
     df_y2019 = df.groupby('year').get_group(2019)\
         .groupby('month')['totals'].sum().reset_index()
     df_y2018 = df.groupby('year').get_group(2018)\
@@ -59,7 +59,6 @@ def plot_num_checks_recent_years():
 
     plt.figure(figsize=(16, 12))
 
-    # Plot lines for years 2015 - 2019
     plt.plot(df_y2019['month'], df_y2019['totals'],
              "--p", color='indianred', label="2019")
     plt.plot(df_y2018['month'], df_y2018['totals'],
@@ -77,7 +76,7 @@ def plot_num_checks_recent_years():
     plt.title('Number of Firearm Background Checks by Month (2015 - 2019)')
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
+    format_yaxis(ax, 1)
 
     plt.show()
 
@@ -97,8 +96,8 @@ def plot_num_checks_by_month_by_type():
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax, spacing=-15)
+    format_yaxis(ax, 1)
+    add_bar_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 2)
     plt.bar(df_by_month['month'], df_by_month['long_gun'],
@@ -106,8 +105,8 @@ def plot_num_checks_by_month_by_type():
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax, spacing=-15)
+    format_yaxis(ax, 1)
+    add_bar_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 3)
     plt.bar(df_by_month['month'], df_by_month['other'],
@@ -116,8 +115,8 @@ def plot_num_checks_by_month_by_type():
     plt.ylabel("Number of Checks")
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax, spacing=-15)
+    format_yaxis(ax, 1)
+    add_bar_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 4)
     plt.bar(df_by_month['month'], df_by_month['multiple'],
@@ -125,8 +124,8 @@ def plot_num_checks_by_month_by_type():
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax, spacing=-15)
+    format_yaxis(ax, 1)
+    add_bar_value_labels(ax, spacing=-15)
 
     plt.subplot(5, 1, 5)
     plt.bar(df_by_month['month'], df_by_month['other_types'],
@@ -134,8 +133,8 @@ def plot_num_checks_by_month_by_type():
     plt.xticks(df_by_month['month'], months)
     plt.legend(loc='best')
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax, spacing=-15)
+    format_yaxis(ax, 1)
+    add_bar_value_labels(ax, spacing=-15)
 
     plt.show()
 
@@ -154,8 +153,8 @@ def plot_top10_states_by_num_checks():
             color="lightcoral")
 
     ax = plt.gca()
-    add_value_labels(ax)
-    add_thousands_separator_yaxis(ax)
+    add_bar_value_labels(ax)
+    format_yaxis(ax)
 
     df_bottom10_states = df.groupby('state')['totals'].sum()\
         .reset_index().sort_values(by='totals', ascending=False)[-10:]
@@ -168,8 +167,8 @@ def plot_top10_states_by_num_checks():
             color="paleturquoise")
 
     ax = plt.gca()
-    add_value_labels(ax)
-    add_thousands_separator_yaxis(ax)
+    add_bar_value_labels(ax, decimal=3)
+    format_yaxis(ax, 1)
 
     plt.show()
 
@@ -187,8 +186,8 @@ def plot_num_checks_by_year():
     plt.bar(df_total['year'], df_total['totals'], color="wheat")
 
     ax = plt.gca()
-    add_value_labels(ax)
-    add_thousands_separator_yaxis(ax)
+    add_bar_value_labels(ax)
+    format_yaxis(ax)
 
     plt.show()
 
@@ -211,34 +210,24 @@ def plot_num_checks_by_type():
     plt.xticks(df_total['type'], x_labels)
 
     ax = plt.gca()
-    add_thousands_separator_yaxis(ax)
-    add_value_labels(ax)
+    format_yaxis(ax)
+    add_bar_value_labels(ax)
 
     plt.show()
 
 
-def add_labels_and_outlines(gdf, ax, offset=0.5):
+def add_labels_and_outlines(gdf, ax, offset=0.4):
     gdf.apply(lambda x: ax.annotate(
-        s=x.NAME, xy=x.geometry.centroid.coords[0],
-        ha='center', color='black', fontsize=9), axis=1)
+        s=x.STUSPS, xy=x.geometry.centroid.coords[0],
+        ha='center', color='black', fontsize=10), axis=1)
 
     gdf.apply(lambda x: ax.annotate(
         s="{:2.2f}M".format(x.totals/1000000),
         xy=(x.geometry.centroid.coords[0][0],
             x.geometry.centroid.coords[0][1]-offset),
-        ha='center', color='black', fontsize=9), axis=1)
+        ha='center', color='black', fontsize=10), axis=1)
 
     gdf.boundary.plot(ax=ax, color='black', linewidth=0.75)
-
-
-def format_map():
-    ax = plt.gca()
-    ax.get_yaxis().set_major_formatter(
-        plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
-
-
-def ticks_in_mil(x, pos):
-    return "{:.0f}M".format(x / 1000000)
 
 
 def plot_num_checks_map():
@@ -248,13 +237,10 @@ def plot_num_checks_map():
     states = pd.merge(gdf_states, df_total_by_state,
                       left_on='NAME', right_on='state', how='inner')
 
-    alaska = states[states['NAME'] == 'Alaska']
-    guam = states[states['NAME'] == 'Guam']
-    hawaii = states[states['NAME'] == 'Hawaii']
-    puerto_rico = states[states['NAME'] == 'Puerto Rico']
-
-    exclude_list = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
-    contiguous = states[~states['NAME'].isin(exclude_list)]
+    separated = ['Alaska', 'Guam', 'Hawaii', 'Puerto Rico']
+    contiguous = states[~states['NAME'].isin(separated)]
+    alaska, guam, hawaii, puerto_rico = \
+        [states[states['NAME'] == state] for state in separated]
 
     fig = plt.figure(constrained_layout=True, figsize=(24, 16))
     gs = fig.add_gridspec(nrows=8, ncols=4)
@@ -263,6 +249,10 @@ def plot_num_checks_map():
     plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
               size=20)
     add_labels_and_outlines(contiguous, ax1)
+
+    def ticks_in_mil(x, pos):
+        return "{:.0f}M".format(x / 1e+6)
+
     contiguous.plot(ax=ax1, cmap='Reds', column='totals', legend=True,
                     legend_kwds={'label': "Number of Checks",
                                  'orientation': "vertical",
@@ -276,17 +266,17 @@ def plot_num_checks_map():
     plt.xlim(xmin=-182, xmax=-128)
 
     ax3 = fig.add_subplot(gs[-1, 1])
-    add_labels_and_outlines(hawaii, ax3, 0.4)
+    add_labels_and_outlines(hawaii, ax3, 0.38)
     hawaii.plot(ax=ax3, cmap='Reds', column='totals')
     plt.xlim(xmin=-160.5, xmax=-154.5)
     plt.ylim(ymin=18.5, ymax=22.5)
 
     ax4 = fig.add_subplot(gs[-1, 2])
-    add_labels_and_outlines(guam, ax4, 0.05)
+    add_labels_and_outlines(guam, ax4, 0.048)
     guam.plot(ax=ax4, cmap='Reds', column='totals')
 
     ax5 = fig.add_subplot(gs[-1, 3])
-    add_labels_and_outlines(puerto_rico, ax5, 0.1)
+    add_labels_and_outlines(puerto_rico, ax5, 0.09)
     puerto_rico.plot(ax=ax5, cmap='Reds', column='totals')
 
     plt.show()
