@@ -25,7 +25,7 @@ def clean_data():
                                  "totals"], inplace=True)
 
     # Other types of transactions such as pre-pawn, rentals, private sale etc.
-    df['other_types'] = df_other_types.sum(axis=1)
+    df['other_types'] = df_other_types.sum(axis=1, numeric_only=True)
 
 
 def format_yaxis(ax, decimal=0):
@@ -46,34 +46,34 @@ def add_bar_value_labels(ax, spacing=5, decimal=2, size=10):
 
 
 def plot_num_checks_recent_years():
+    df_y2022 = df.groupby('year').get_group(2022)\
+        .groupby('month')['totals'].sum().reset_index()
+    df_y2021 = df.groupby('year').get_group(2021)\
+        .groupby('month')['totals'].sum().reset_index()
+    df_y2020 = df.groupby('year').get_group(2020)\
+        .groupby('month')['totals'].sum().reset_index()
     df_y2019 = df.groupby('year').get_group(2019)\
         .groupby('month')['totals'].sum().reset_index()
     df_y2018 = df.groupby('year').get_group(2018)\
         .groupby('month')['totals'].sum().reset_index()
-    df_y2017 = df.groupby('year').get_group(2017)\
-        .groupby('month')['totals'].sum().reset_index()
-    df_y2016 = df.groupby('year').get_group(2016)\
-        .groupby('month')['totals'].sum().reset_index()
-    df_y2015 = df.groupby('year').get_group(2015)\
-        .groupby('month')['totals'].sum().reset_index()
 
     plt.figure(figsize=(16, 12))
 
+    plt.plot(df_y2022['month'], df_y2022['totals'],
+             "-*", markersize=4, color='gold', label='2022')
+    plt.plot(df_y2021['month'], df_y2021['totals'],
+             "--p", color='indianred', label="2021")
+    plt.plot(df_y2020['month'], df_y2020['totals'],
+             ":.", color='magenta', label="2020")
     plt.plot(df_y2019['month'], df_y2019['totals'],
-             "--p", color='indianred', label="2019")
+             "--.", color='limegreen', label="2019")
     plt.plot(df_y2018['month'], df_y2018['totals'],
-             ":.", color='magenta', label="2018")
-    plt.plot(df_y2017['month'], df_y2017['totals'],
-             "--.", color='limegreen', label="2017")
-    plt.plot(df_y2016['month'], df_y2016['totals'],
-             "-.*", markersize=4, color='lightblue', label="2016")
-    plt.plot(df_y2015['month'], df_y2015['totals'],
-             "-*", markersize=4, color='bisque', label="2015")
+             "-.*", markersize=4, color='lightblue', label="2018")
 
     plt.ylim(ymin=0)  # Set y axis to start from 0
-    plt.xticks(df_y2019['month'], months)
+    plt.xticks(df_y2021['month'], months)
     plt.ylabel('Number of Checks')
-    plt.title('Number of Firearm Background Checks by Month (2015 - 2019)')
+    plt.title('Number of Firearm Background Checks by Month (2018 - 2022 YTD)')
     plt.legend(loc='best')
     ax = plt.gca()
     format_yaxis(ax, 1)
@@ -90,7 +90,7 @@ def plot_num_checks_by_month_by_type():
 
     plt.subplot(5, 1, 1)
     plt.title("Number of Firearm Background Checks by Month "
-              "by Type (Nov 1998 - Oct 2020)")
+              "by Type (Nov 1998 - Apr 2022)")
     plt.bar(df_by_month['month'], df_by_month['handgun'],
             color="lightpink", label='Handgun')
     plt.xticks(df_by_month['month'], months)
@@ -147,7 +147,7 @@ def plot_top10_states_by_num_checks():
 
     plt.subplot(2, 1, 1)
     plt.title("Top 10 States/Territories by Number of "
-              "Firearm Background Checks (Nov 1998 - Oct 2020)")
+              "Firearm Background Checks (Nov 1998 - Apr 2022)")
     plt.ylabel("Number of Checks")
     plt.bar(df_top10_states['state'], df_top10_states['totals'],
             color="lightcoral")
@@ -161,7 +161,7 @@ def plot_top10_states_by_num_checks():
 
     plt.subplot(2, 1, 2)
     plt.title("Bottom 10 States/Territories by Number of "
-              "Firearm Background Checks (Nov 1998 - Oct 2020)")
+              "Firearm Background Checks (Nov 1998 - Apr 2022)")
     plt.ylabel("Number of Checks")
     plt.bar(df_bottom10_states['state'], df_bottom10_states['totals'],
             color="paleturquoise")
@@ -174,12 +174,12 @@ def plot_top10_states_by_num_checks():
 
 
 def plot_num_checks_by_year():
-    df_total = df[(df['year'].between(1999, 2019, inclusive=True))]\
+    df_total = df[(df['year'].between(1999, 2021, inclusive='both'))]\
         .groupby('year').sum().reset_index()
 
     plt.figure(figsize=(20, 12))
     plt.margins(x=0.01)
-    plt.title("Number of Firearm Background Checks by Year (1999 - 2019)")
+    plt.title("Number of Firearm Background Checks by Year (1999 - 2021)")
     plt.ylabel("Number of Checks")
     plt.xticks(df_total['year'])
     plt.plot(df_total['year'], df_total['totals'], color="goldenrod")
@@ -199,7 +199,7 @@ def plot_num_checks_by_type():
 
     plt.figure(figsize=(15, 12))
     plt.title("Number of Firearm Background Checks by Type "
-              "(Nov 1998 - Oct 2020)")
+              "(Nov 1998 - Apr 2022)")
     plt.ylabel("Number of Checks")
 
     bar_colors = ['lightpink', 'lightgreen', 'lightblue', 'lavender', 'beige']
@@ -218,11 +218,11 @@ def plot_num_checks_by_type():
 
 def add_labels_and_outlines(gdf, ax, offset=0.4):
     gdf.apply(lambda x: ax.annotate(
-        s=x.STUSPS, xy=x.geometry.centroid.coords[0],
+        text=x.STUSPS, xy=x.geometry.centroid.coords[0],
         ha='center', color='black', fontsize=10), axis=1)
 
     gdf.apply(lambda x: ax.annotate(
-        s="{:2.2f}M".format(x.totals/1000000),
+        text="{:2.2f}M".format(x.totals/1000000),
         xy=(x.geometry.centroid.coords[0][0],
             x.geometry.centroid.coords[0][1]-offset),
         ha='center', color='black', fontsize=10), axis=1)
@@ -246,7 +246,7 @@ def plot_num_checks_map():
     gs = fig.add_gridspec(nrows=8, ncols=4)
 
     ax1 = fig.add_subplot(gs[:-1, :])
-    plt.title("Number of Firearm Background Checks (Nov 1998 - Oct 2020)",
+    plt.title("Number of Firearm Background Checks (Nov 1998 - Apr 2022)",
               size=20)
     add_labels_and_outlines(contiguous, ax1)
 
