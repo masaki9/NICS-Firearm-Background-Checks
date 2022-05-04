@@ -25,7 +25,7 @@ def clean_data():
                                  "totals"], inplace=True)
 
     # Other types of transactions such as pre-pawn, rentals, private sale etc.
-    df['other_types'] = df_other_types.sum(axis=1)
+    df['other_types'] = df_other_types.sum(axis=1, numeric_only=True)
 
 
 def format_yaxis(ax, decimal=0):
@@ -174,7 +174,7 @@ def plot_top10_states_by_num_checks():
 
 
 def plot_num_checks_by_year():
-    df_total = df[(df['year'].between(1999, 2019, inclusive=True))]\
+    df_total = df[(df['year'].between(1999, 2019, inclusive='both'))]\
         .groupby('year').sum().reset_index()
 
     plt.figure(figsize=(20, 12))
@@ -218,11 +218,11 @@ def plot_num_checks_by_type():
 
 def add_labels_and_outlines(gdf, ax, offset=0.4):
     gdf.apply(lambda x: ax.annotate(
-        s=x.STUSPS, xy=x.geometry.centroid.coords[0],
+        text=x.STUSPS, xy=x.geometry.centroid.coords[0],
         ha='center', color='black', fontsize=10), axis=1)
 
     gdf.apply(lambda x: ax.annotate(
-        s="{:2.2f}M".format(x.totals/1000000),
+        text="{:2.2f}M".format(x.totals/1000000),
         xy=(x.geometry.centroid.coords[0][0],
             x.geometry.centroid.coords[0][1]-offset),
         ha='center', color='black', fontsize=10), axis=1)
